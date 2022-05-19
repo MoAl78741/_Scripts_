@@ -158,7 +158,7 @@ class ParsePacketFaz(ParsePacket):
 
     def convert_data_to_fgt_compatible(self, line : str) -> str:
         '''
-        fac: 0x0000:  0001 0800 0604 0001 94de 8061 a404 0a6c  ...........a...l
+        faz: 0x0000:  0001 0800 0604 0001 94de 8061 a404 0a6c  ...........a...l
         fgt: 0x0000	 ffff ffff ffff 000c 2913 c0cf 0806 0001	........).......
         returns: 0x0000  0001 0800 0604 0001 94de 8061 a404 0a6c  ...........a...l
         '''
