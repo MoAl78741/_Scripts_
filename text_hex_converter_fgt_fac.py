@@ -9,6 +9,8 @@ import sys
 class ParsePacket(object):
     '''Parses sniffer output for FortiGate Devices'''
 
+    text_input_file_as_hex = ""
+
     def __init__(self):
         # identifying lines
         self.re_identify_hex_data = r'^\t|^(0x\w{4}\:?\s+([0-9a-f]{2,4}\s){2,10})'
@@ -122,18 +124,23 @@ class ParsePacket(object):
 
     @classmethod
     def run_text_to_hex_conversion(cls, file):
-        text_input_file_as_hex = ""
+        
         with open(file, 'r') as infile:
             rfile = infile.read()       
         for line in rfile.splitlines():
             line_code = cls().identifyLine(line)  #identify line 1=header 2=body
             if line_code == 1:                  #header lines
                 header = cls().headerLineOperations(line)
-                text_input_file_as_hex += header
+                cls().append_to_class_var(header)
             elif line_code == 2: #body lines
                 body = cls().bodyLineOperations(line)
-                text_input_file_as_hex += body
-        return text_input_file_as_hex   
+                cls().append_to_class_var(body)
+        return cls().text_input_file_as_hex 
+
+    @staticmethod
+    def append_to_class_var(line):
+        ParsePacket.text_input_file_as_hex += line
+        return
 
 
 class ParsePacketFac(ParsePacket):
@@ -181,13 +188,12 @@ class ParsePacketFac(ParsePacket):
             line_code = cls().identifyLine(line)  #identify line 1=header 2=body
             if line_code == 1:                  #header lines
                 header = cls().headerLineOperations(line)
-                text_input_file_as_hex += header
+                cls().append_to_class_var(header)
             elif line_code == 2: #body lines
                 line = cls().convert_data_to_fgt_compatible(line)
                 body = cls().bodyLineOperations(line)
-
-                text_input_file_as_hex += body
-        return text_input_file_as_hex 
+                cls().append_to_class_var(body)
+        return cls().text_input_file_as_hex 
 
 
 def main():
@@ -199,4 +205,4 @@ def main():
         print(results)
 
 if __name__ == '__main__':
-     main() 
+     main()
