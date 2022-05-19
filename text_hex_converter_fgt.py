@@ -152,9 +152,6 @@ class ParsePacket(object):
 
 class ParsePacketTcpDump(ParsePacket):
     '''Parses sniffer output for TCPDump devices'''
-
-    # def __init__(self):   
-        # super().__init__()    #super is only needed here if we want to inherit parent vars from init. Like if we added some tcpdump speciifc vars here and still want access to parent class vars in init.
    
     def identify_timestamp(self, line : str):
         absolutec = compile(self.headerLineTimeAbsolute)
