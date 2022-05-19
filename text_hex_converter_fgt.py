@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # To run:  python3 text_hex_converter_fgt_faz.py input.txt fgt > input.txt.converted && text2pcap -t "%d/%m/%Y %H:%M:%S." input.txt.converted output.pcap
-# Quick script to convert sniffer output from FortiGate and FortiAnalyzer to hex in order to run through text2pcap for final PCAP format. 
+# Quick script to convert sniffer output from FortiGate and TCPDump to hex in order to run through text2pcap for final PCAP format. 
 # Similar to fgt2eth.pl which also converts to hex then pipes to text2pcap.
 
 from re import compile
@@ -142,8 +142,8 @@ class ParsePacket(object):
         return
 
 
-class ParsePacketFaz(ParsePacket):
-    '''Parses sniffer output for FortiAnalyzer devcies'''
+class ParsePacketTcpDump(ParsePacket):
+    '''Parses sniffer output for TCPDump devices'''
    
     def identify_timestamp(self, line : str):
         absolutec = compile(self.headerLineTimeAbsolute)
@@ -158,7 +158,7 @@ class ParsePacketFaz(ParsePacket):
 
     def convert_data_to_fgt_compatible(self, line : str) -> str:
         '''
-        faz: 0x0000:  0001 0800 0604 0001 94de 8061 a404 0a6c  ...........a...l
+        tcpdump: 0x0000:  0001 0800 0604 0001 94de 8061 a404 0a6c  ...........a...l
         fgt: 0x0000	 ffff ffff ffff 000c 2913 c0cf 0806 0001	........).......
         returns: 0x0000  0001 0800 0604 0001 94de 8061 a404 0a6c  ...........a...l
         '''
@@ -196,8 +196,8 @@ def main():
     if sys.argv[2] == 'fgt':
         results = ParsePacket.run_text_to_hex_conversion(sys.argv[1])
         print(results) 
-    if sys.argv[2] == 'faz':
-        results = ParsePacketFaz.run_text_to_hex_conversion(sys.argv[1])
+    if sys.argv[2] == 'tcpdump':
+        results = ParsePacketTcpDump.run_text_to_hex_conversion(sys.argv[1])
         print(results)
 
 if __name__ == '__main__':
