@@ -7,7 +7,7 @@ from re import compile
 import sys
 
 class ParsePacket(object):
-    '''Parses sniffer output for FortiGate Devices'''
+    '''Parses sniffer output for FortiGate devices'''
 
     text_input_file_as_hex = ""
 
