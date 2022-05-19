@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# To run:  python3 text_hex_converter_fgt_fac.py input.txt fgt > input.txt.converted && text2pcap -t "%d/%m/%Y %H:%M:%S." input.txt.converted output.pcap
+# To run:  python3 text_hex_converter_fgt_faz.py input.txt fgt > input.txt.converted && text2pcap -t "%d/%m/%Y %H:%M:%S." input.txt.converted output.pcap
 # Quick script to convert sniffer output from FortiGate and FortiAnalyzer to hex in order to run through text2pcap for final PCAP format. 
 # Similar to fgt2eth.pl which also converts to hex then pipes to text2pcap.
 
@@ -142,7 +142,7 @@ class ParsePacket(object):
         return
 
 
-class ParsePacketFac(ParsePacket):
+class ParsePacketFaz(ParsePacket):
     '''Parses sniffer output for FortiAnalyzer devcies'''
    
     def identify_timestamp(self, line : str):
@@ -196,8 +196,8 @@ def main():
     if sys.argv[2] == 'fgt':
         results = ParsePacket.run_text_to_hex_conversion(sys.argv[1])
         print(results) 
-    if sys.argv[2] == 'fac':
-        results = ParsePacketFac.run_text_to_hex_conversion(sys.argv[1])
+    if sys.argv[2] == 'faz':
+        results = ParsePacketFaz.run_text_to_hex_conversion(sys.argv[1])
         print(results)
 
 if __name__ == '__main__':
