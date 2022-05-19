@@ -153,17 +153,6 @@ class ParsePacket(object):
 class ParsePacketTcpDump(ParsePacket):
     '''Parses sniffer output for TCPDump devices'''
    
-    def identify_timestamp(self, line : str):
-        absolutec = compile(self.headerLineTimeAbsolute)
-        relativec = compile(self.headerLineTimeRelative)
-        absolutes = absolutec.search(line)
-        relatives = relativec.search(line)
-        if absolutes:
-            return 0
-        if relatives:
-            return 1
-        raise Exception('Unable to identify timestamp in packet header')
-
     def convert_data_to_fgt_compatible(self, line : str) -> str:
         '''
         tcpdump: 0x0000:  0001 0800 0604 0001 94de 8061 a404 0a6c  ...........a...l
@@ -174,23 +163,9 @@ class ParsePacketTcpDump(ParsePacket):
         line[0] = line[0].split(':')[:-1][0]
         return ' '.join(line)
 
-    def header_line_operations(self, line : str):
-        timestamp_code = self.identify_timestamp(line)
-        if timestamp_code == 0:         #absolute timestamp
-            us_date, ts_time, iface, direction = self.parsepacket_header_absolute_time(line.split())    #(23/06/2015, 17:00:16.633104, 'wan1', 'in')
-            return f'\n{us_date} {ts_time}' + '\n'
-        if timestamp_code == 1:         #relative timestamp
-            ts, us, iface, direction = self.parsepacket_header_relative_time(line.split())              #(0, 806164, 'wan1', 'in')
-            return f'\n01/01/2005 {ts}.{us}' + '\n'
-
     def body_line_operations_run(self, line : str):
         line = self.convert_data_to_fgt_compatible(line)
         super().body_line_operations_run(line)
-
-    @classmethod
-    def run_text_to_hex_conversion(cls, file):      
-        cls().run_operations(file)
-        return cls().text_input_file_as_hex
 
 
 def main():
