@@ -20,7 +20,7 @@ class ParsePacket(object):
         self.headerLineTimeAbsolute = r'(^([0-9]{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)\.([0-9]*) )' # 2015-06-23 17:00:16.633104 
         self.headerLineTimeRelative = r'(^([0-9]*)\.([0-9]*)[ \t])'    # 0.951333        
 
-    def identifyLine(self, line : str) -> int:
+    def identify_line(self, line : str) -> int:
         '''
         :param $line
         :return int 1|2 (1=header|2=body)
@@ -45,7 +45,7 @@ class ParsePacket(object):
             return 1
         raise Exception('Unable to identify timestamp in packet header')
 
-    def parsePacketHeaderAbsoluteTime(self, line : list) -> tuple:
+    def parsepacket_header_absolute_time(self, line : list) -> tuple:
         '''
         absolute time format
         :param      2015-06-23 17:00:16.633104 wan1 in arp who-has 10.108.17.254 tell 10.108.16.125
@@ -60,7 +60,7 @@ class ParsePacket(object):
         us = f'{day}/{month}/{year}'
         return us, ts, iface, direction      
 
-    def parsePacketHeaderRelativeTime(self, line : list) -> tuple:
+    def parsepacket_header_relative_time(self, line : list) -> tuple:
         '''
         relative time format
         :param      0.806164 wan1 in arp who-has 10.108.18.77 tell 10.108.17.106
@@ -73,7 +73,7 @@ class ParsePacket(object):
         direction = line.pop(0)
         return ts, us, iface, direction
 
-    def parsePacketBodyPrefixRemoveX(self, line : list) -> list:
+    def parsepacket_body_prefix_remove_x(self, line : list) -> list:
         ''' 1
         converts 0x to 00
         :param line:    0x0000\t ffff ffff ffff 94de 8061 a404 0806 0001
@@ -83,7 +83,7 @@ class ParsePacket(object):
         return line
 
 
-    def parsePacketBodyAscii(self, line : list) -> list:
+    def parsepacket_body_ascii(self, line : list) -> list:
         ''' 2
         removes ascii
         :param  000000	 ffff ffff ffff 94de 8061 a404 0806 0001	.........a......
@@ -92,7 +92,7 @@ class ParsePacket(object):
         line.pop(-1)
         return line
 
-    def parsePacketBodySplitInTwo(self, line : list) -> str:
+    def parsepacket_body_split_in_two(self, line : list) -> str:
         ''' 3
         converts 0000 to 00 00
         :param line:    000000\t ffff ffff ffff 94de 8061 a404 0806 0001
@@ -105,44 +105,44 @@ class ParsePacket(object):
         line = ' '.join(two_list)
         return f'{prefix}  {line}'
 
-    def parsePacketBodyFinal(self, line : list) -> str:
-        newline = self.parsePacketBodyPrefixRemoveX(line)  #000000   ffff ffff ffff 94de 8061 a404 0806 0001        .........a......
-        newline = self.parsePacketBodyAscii(newline)               #000000   ffff ffff ffff 94de 8061 a404 0806 0001
-        return self.parsePacketBodySplitInTwo(newline)   #000000   ff ff ff ff ff ff 94 de 80 61 a4 04 08 06 00 01
+    def parsepacket_body_final(self, line : list) -> str:
+        newline = self.parsepacket_body_prefix_remove_x(line)  #000000   ffff ffff ffff 94de 8061 a404 0806 0001        .........a......
+        newline = self.parsepacket_body_ascii(newline)               #000000   ffff ffff ffff 94de 8061 a404 0806 0001
+        return self.parsepacket_body_split_in_two(newline)   #000000   ff ff ff ff ff ff 94 de 80 61 a4 04 08 06 00 01
 
-    def headerLineOperations(self, line : str):
+    def header_line_operations(self, line : str):
         timestamp_code = self.identify_timestamp(line)
         if timestamp_code == 0:         #absolute timestamp
-            us_date, ts_time, iface, direction = self.parsePacketHeaderAbsoluteTime(line.split())    #(23/06/2015, 17:00:16.633104, 'wan1', 'in')
+            us_date, ts_time, iface, direction = self.parsepacket_header_absolute_time(line.split())    #(23/06/2015, 17:00:16.633104, 'wan1', 'in')
             return f'\n{us_date} {ts_time}' + '\n'
         if timestamp_code == 1:         #relative timestamp
-            ts, us, iface, direction = self.parsePacketHeaderRelativeTime(line.split())              #(0, 806164, 'wan1', 'in')
+            ts, us, iface, direction = self.parsepacket_header_relative_time(line.split())              #(0, 806164, 'wan1', 'in')
             return f'\n01/01/2005 0:0:{ts}.{us}' + '\n'
 
-    def bodyLineOperations(self, line: str):
-        return self.parsePacketBodyFinal(line.split()) + '\n'
+    def body_line_operations(self, line: str):
+        return self.parsepacket_body_final(line.split()) + '\n'
 
-    def headerLineOperationsRun(self, line : str):
-        header = self.headerLineOperations(line)
+    def header_line_operations_run(self, line : str):
+        header = self.header_line_operations(line)
         self.append_to_class_var(header)
     
-    def bodyLineOperationsRun(self, line : str):
-        body = self.bodyLineOperations(line)
+    def body_line_operations_run(self, line : str):
+        body = self.body_line_operations(line)
         self.append_to_class_var(body)
 
-    def runOperations(self, file : str):
+    def run_operations(self, file : str):
         with open(file, 'r') as infile:
             rfile = infile.read()       
         for line in rfile.splitlines():
-            line_code = self.identifyLine(line)  #identify line 1=header 2=body
+            line_code = self.identify_line(line)  #identify line 1=header 2=body
             if line_code == 1:                  #header lines
-                self.headerLineOperationsRun(line)
+                self.header_line_operations_run(line)
             elif line_code == 0: #body lines
-                self.bodyLineOperationsRun(line)
+                self.body_line_operations_run(line)
 
     @classmethod
     def run_text_to_hex_conversion(cls, file):
-        cls().runOperations(file)
+        cls().run_operations(file)
         return cls().text_input_file_as_hex
 
     @staticmethod
@@ -177,22 +177,22 @@ class ParsePacketTcpDump(ParsePacket):
         line[0] = line[0].split(':')[:-1][0]
         return ' '.join(line)
 
-    def headerLineOperations(self, line : str):
+    def header_line_operations(self, line : str):
         timestamp_code = self.identify_timestamp(line)
         if timestamp_code == 0:         #absolute timestamp
-            us_date, ts_time, iface, direction = self.parsePacketHeaderAbsoluteTime(line.split())    #(23/06/2015, 17:00:16.633104, 'wan1', 'in')
+            us_date, ts_time, iface, direction = self.parsepacket_header_absolute_time(line.split())    #(23/06/2015, 17:00:16.633104, 'wan1', 'in')
             return f'\n{us_date} {ts_time}' + '\n'
         if timestamp_code == 1:         #relative timestamp
-            ts, us, iface, direction = self.parsePacketHeaderRelativeTime(line.split())              #(0, 806164, 'wan1', 'in')
+            ts, us, iface, direction = self.parsepacket_header_relative_time(line.split())              #(0, 806164, 'wan1', 'in')
             return f'\n01/01/2005 {ts}.{us}' + '\n'
 
-    def bodyLineOperationsRun(self, line : str):
+    def body_line_operations_run(self, line : str):
         line = self.convert_data_to_fgt_compatible(line)
-        super().bodyLineOperationsRun(line)
+        super().body_line_operations_run(line)
 
     @classmethod
     def run_text_to_hex_conversion(cls, file):      
-        cls().runOperations(file)
+        cls().run_operations(file)
         return cls().text_input_file_as_hex
 
 
