@@ -144,9 +144,6 @@ class ParsePacket(object):
 
 class ParsePacketFac(ParsePacket):
     '''Parses sniffer output for FortiAnalyzer devcies'''
-
-    def __init__(self):
-        super().__init__()
    
     def identify_timestamp(self, line : str):
         absolutec = compile(self.headerLineTimeAbsolute)
