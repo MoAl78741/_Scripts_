@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# To run:  python3 text_hex_converter_fgt_faz.py input.txt fgt > input.txt.converted && text2pcap -t "%d/%m/%Y %H:%M:%S." input.txt.converted output.pcap
+# To run:  python3 text_hex_converter_fgt.py input.txt fgt > input.txt.converted && text2pcap -t "%d/%m/%Y %H:%M:%S." input.txt.converted output.pcap
 # Quick script to convert sniffer output from FortiGate and TCPDump to hex in order to run through text2pcap for final PCAP format. 
 # Similar to fgt2eth.pl which also converts to hex then pipes to text2pcap.
 
@@ -122,28 +122,39 @@ class ParsePacket(object):
     def bodyLineOperations(self, line: str):
         return self.parsePacketBodyFinal(line.split()) + '\n'
 
-    @classmethod
-    def run_text_to_hex_conversion(cls, file):
+    def headerLineOperationsRun(self, line : str):
+        header = self.headerLineOperations(line)
+        self.append_to_class_var(header)
+    
+    def bodyLineOperationsRun(self, line : str):
+        body = self.bodyLineOperations(line)
+        self.append_to_class_var(body)
+
+    def runOperations(self, file : str):
         with open(file, 'r') as infile:
             rfile = infile.read()       
         for line in rfile.splitlines():
-            line_code = cls().identifyLine(line)  #identify line 1=header 2=body
+            line_code = self.identifyLine(line)  #identify line 1=header 2=body
             if line_code == 1:                  #header lines
-                header = cls().headerLineOperations(line)
-                cls().append_to_class_var(header)
+                self.headerLineOperationsRun(line)
             elif line_code == 0: #body lines
-                body = cls().bodyLineOperations(line)
-                cls().append_to_class_var(body)
-        return cls().text_input_file_as_hex 
+                self.bodyLineOperationsRun(line)
+
+    @classmethod
+    def run_text_to_hex_conversion(cls, file):
+        cls().runOperations(file)
+        return cls().text_input_file_as_hex
 
     @staticmethod
     def append_to_class_var(line):
         ParsePacket.text_input_file_as_hex += line
-        return
 
 
 class ParsePacketTcpDump(ParsePacket):
     '''Parses sniffer output for TCPDump devices'''
+
+    # def __init__(self):   
+        # super().__init__()    #super is only needed here if we want to inherit parent vars from init. Like if we added some tcpdump speciifc vars here and still want access to parent class vars in init.
    
     def identify_timestamp(self, line : str):
         absolutec = compile(self.headerLineTimeAbsolute)
@@ -175,21 +186,14 @@ class ParsePacketTcpDump(ParsePacket):
             ts, us, iface, direction = self.parsePacketHeaderRelativeTime(line.split())              #(0, 806164, 'wan1', 'in')
             return f'\n01/01/2005 {ts}.{us}' + '\n'
 
+    def bodyLineOperationsRun(self, line : str):
+        line = self.convert_data_to_fgt_compatible(line)
+        super().bodyLineOperationsRun(line)
+
     @classmethod
-    def run_text_to_hex_conversion(cls, file):
-        text_input_file_as_hex = ""
-        with open(file, 'r') as infile:
-            rfile = infile.read()       
-        for line in rfile.splitlines():
-            line_code = cls().identifyLine(line)  #identify line 1=header 2=body
-            if line_code == 1:                  #header lines
-                header = cls().headerLineOperations(line)
-                cls().append_to_class_var(header)
-            elif line_code == 0: #body lines
-                line = cls().convert_data_to_fgt_compatible(line)
-                body = cls().bodyLineOperations(line)
-                cls().append_to_class_var(body)
-        return cls().text_input_file_as_hex 
+    def run_text_to_hex_conversion(cls, file):      
+        cls().runOperations(file)
+        return cls().text_input_file_as_hex
 
 
 def main():
