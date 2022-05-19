@@ -30,7 +30,7 @@ class ParsePacket(object):
         idhexs = idhexc.search(line)
         idtss = idtsc.search(line)
         if idhexs:
-            return 2
+            return 0
         elif idtss:
             return 1
 
@@ -124,7 +124,6 @@ class ParsePacket(object):
 
     @classmethod
     def run_text_to_hex_conversion(cls, file):
-        
         with open(file, 'r') as infile:
             rfile = infile.read()       
         for line in rfile.splitlines():
@@ -132,7 +131,7 @@ class ParsePacket(object):
             if line_code == 1:                  #header lines
                 header = cls().headerLineOperations(line)
                 cls().append_to_class_var(header)
-            elif line_code == 2: #body lines
+            elif line_code == 0: #body lines
                 body = cls().bodyLineOperations(line)
                 cls().append_to_class_var(body)
         return cls().text_input_file_as_hex 
@@ -189,7 +188,7 @@ class ParsePacketFac(ParsePacket):
             if line_code == 1:                  #header lines
                 header = cls().headerLineOperations(line)
                 cls().append_to_class_var(header)
-            elif line_code == 2: #body lines
+            elif line_code == 0: #body lines
                 line = cls().convert_data_to_fgt_compatible(line)
                 body = cls().bodyLineOperations(line)
                 cls().append_to_class_var(body)
