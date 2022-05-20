@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# To run:  python3 text_hex_converter_fgt.py input.txt fgt > input.txt.converted && text2pcap -t "%d/%m/%Y %H:%M:%S." input.txt.converted output.pcap
+# To run:  python3 text_hex_converter_fgt.py -fgt input.txt > input.txt.converted && text2pcap -t "%d/%m/%Y %H:%M:%S." input.txt.converted output.pcap
 # Quick script to convert sniffer output from FortiGate and TCPDump to hex in order to run through text2pcap for final PCAP format. 
 # Similar to fgt2eth.pl which also converts to hex then pipes to text2pcap.
 
@@ -169,11 +169,11 @@ class ParsePacketTcpDump(ParsePacket):
 
 
 def main():
-    if sys.argv[2] == 'fgt':
-        results = ParsePacket.run_text_to_hex_conversion(sys.argv[1])
+    if sys.argv[1] == '-fgt':
+        results = ParsePacket.run_text_to_hex_conversion(sys.argv[2])
         print(results) 
-    if sys.argv[2] == 'tcpdump':
-        results = ParsePacketTcpDump.run_text_to_hex_conversion(sys.argv[1])
+    if sys.argv[1] == '-tcpdump':
+        results = ParsePacketTcpDump.run_text_to_hex_conversion(sys.argv[2])
         print(results)
 
 if __name__ == '__main__':
